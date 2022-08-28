@@ -1,4 +1,6 @@
 # Imports
+import sys
+
 import pandas as pd
 
 from sklearn.metrics import confusion_matrix
@@ -129,7 +131,7 @@ def simulateScreening(df):
 
 # Main function
 if __name__ == "__main__":
-    method = sys.argv[0]
+    method = sys.argv[1]
     names = ["cellulitis", "copper", "search", "uti", "overdiagnosis"]
 
     for name in names:

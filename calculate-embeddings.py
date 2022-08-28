@@ -65,6 +65,7 @@ def get_scibert_embeddings(abstracts):
 
         print(index, length)
         print(expected_time)
+    return embeddings
 
 # Function to get document embedding
 def get_scibert_embedding(model, tokenizer, text):
@@ -128,6 +129,7 @@ def get_bloom_embeddings(abstracts):
 
         print(index, length)
         print(expected_time)
+    return embeddings
 
 def get_bloom_embedding(model, tokenizer, text):
 
@@ -179,7 +181,7 @@ def calculate_embeddings(name, method):
 
 # Main function
 if __name__ == "__main__":
-    method = sys.argv[0]
+    method = sys.argv[1]
     names = ["cellulitis", "copper", "search", "uti", "overdiagnosis"]
     for name in names:
         calculate_embeddings(name, method)
