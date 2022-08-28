@@ -1,6 +1,14 @@
 # Automated-Screening
 
-This repo explores using various machine learning methods to perform semi-automated screening
+This python repo explores using various machine learning methods to perform semi-automated screening
+
+## Installation
+
+This python repo requires Python3 (run using version 3.10.6) and pip (22.2.2).
+
+To install all package requirements run:
+
+`pip install -r requirements.txt`
 
 ## Method Names
 
