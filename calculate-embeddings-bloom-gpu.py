@@ -80,7 +80,7 @@ def get_bloom_embedding(model, tokenizer, text):
     with torch.no_grad():
         outputs = model(input_ids)
         # Extract hidden states
-        hidden_states = outputs
+        hidden_states = outputs.hidden_states
 
 
     # Select the word embeddings on the last layer
