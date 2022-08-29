@@ -84,7 +84,7 @@ def get_bloom_embedding(model, tokenizer, text):
 
 
     # Select the word embeddings on the last layer
-    print("Hidden states:", token_vecs.shape)
+    print("Hidden states:", hidden_states.shape)
     token_vecs = hidden_states[-1][0]
     print("Token vecs:", token_vecs.shape)
     # Calculate average of token vectors/word embeddings
