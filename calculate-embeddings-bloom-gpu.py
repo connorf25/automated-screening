@@ -1,3 +1,5 @@
+
+
 # Imports
 import sys
 
@@ -84,15 +86,19 @@ def get_bloom_embedding(model, tokenizer, text):
 
 
     # Select the word embeddings on the last 5 layers
-    token_vecs = hidden_states[-5:][0]
-    print("Token vecs:", token_vecs.shape)
-    # Calculate average of token vectors/word embeddings
-    document_embedding = torch.mean(token_vecs, dim=0)
+    last_layers = hidden_states[-5:]
+    print("Number layers:", len(last_layers))
+    document_embedding_layers = []
+    for layer in last_layers:
+        # Take first item from batch (only one document per batch anyway)
+        layer = layer[0]
+        # Calculate average of all word embeddings to get document embedding
+        document_embedding_layers.append(torch.mean(layer, dim=0).cpu().detach().numpy())
     # Convert to np array
-    document_embedding = document_embedding.cpu().detach().numpy()
-    print("Document embedding shape:", document_embedding.shape)
+    document_embedding_layers = np.asarray(document_embedding_layers)
+    print("Document embedding shape:", document_embedding_layers.shape)
 
-    return document_embedding
+    return document_embedding_layers
 
 def calculate_embeddings(name, method):
     # Parse XML
@@ -104,13 +110,12 @@ def calculate_embeddings(name, method):
         df['embeddings'] = get_bloom_embeddings(df['abstract'])
 
     # Save dataframe to prevent recalculation
-    # df.to_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
+    df.to_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
 
 # Main function
 if __name__ == "__main__":
     method = sys.argv[1]
-    # names = ["cellulitis", "copper", "search", "uti", "overdiagnosis"]
-    names = ["copper"]
+    names = ["cellulitis", "copper", "search", "uti", "overdiagnosis"]
 
     # Initialize cuda
     print("Is CUDA avaliable:", torch.cuda.is_available())
