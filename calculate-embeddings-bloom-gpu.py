@@ -89,7 +89,7 @@ def get_bloom_embedding(model, tokenizer, text):
     # Calculate average of token vectors/word embeddings
     sentence_embedding = torch.mean(token_vecs, dim=0)
     # Convert to np array
-    sentence_embedding = sentence_embedding.detach().numpy()
+    sentence_embedding = sentence_embedding.cpu().detach().numpy()
     print("sentence embedding shape:", sentence_embedding.shape)
 
     return sentence_embedding
