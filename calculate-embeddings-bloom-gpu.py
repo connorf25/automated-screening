@@ -80,19 +80,19 @@ def get_bloom_embedding(model, tokenizer, text):
     with torch.no_grad():
         outputs = model(input_ids)
         # Extract hidden states
-        last_hidden_states = outputs.last_hidden_state
+        hidden_states = outputs[2]
 
 
     # Select the word embeddings on the last layer
-    token_vecs = last_hidden_states[0]
+    token_vecs = hidden_states[-1][0]
     print("Token vecs:", token_vecs.shape)
     # Calculate average of token vectors/word embeddings
-    sentence_embedding = torch.mean(token_vecs, dim=0)
+    document_embedding = torch.mean(token_vecs, dim=0)
     # Convert to np array
-    sentence_embedding = sentence_embedding.cpu().detach().numpy()
-    print("sentence embedding shape:", sentence_embedding.shape)
+    document_embedding = document_embedding.cpu().detach().numpy()
+    print("Document embedding shape:", document_embedding.shape)
 
-    return sentence_embedding
+    return document_embedding
 
 def calculate_embeddings(name, method):
     # Parse XML
@@ -104,16 +104,19 @@ def calculate_embeddings(name, method):
         df['embeddings'] = get_bloom_embeddings(df['abstract'])
 
     # Save dataframe to prevent recalculation
-    df.to_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
+    # df.to_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
 
 # Main function
 if __name__ == "__main__":
+    method = sys.argv[1]
+    # names = ["cellulitis", "copper", "search", "uti", "overdiagnosis"]
+    names = ["copper"]
+
     # Initialize cuda
     print("Is CUDA avaliable:", torch.cuda.is_available())
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device:", device)
-    method = sys.argv[1]
-    names = ["cellulitis", "copper", "search", "uti", "overdiagnosis"]
+
     for name in names:
         calculate_embeddings(name, method)
 
