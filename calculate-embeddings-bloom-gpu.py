@@ -30,10 +30,10 @@ def parseXML(filename, isInclude):
     return abstracts, tags
 
 # Find bloom embeddings
-def get_bloom_embeddings(abstracts):
+def get_bloom_embeddings(abstracts, bloom_model):
     # Load scibert
-    bloom_tokenizer = BloomTokenizerFast.from_pretrained("bigscience/bloom-350m")
-    bloom_model = BloomModel.from_pretrained("bigscience/bloom-350m", output_hidden_states=True).to(device)
+    bloom_tokenizer = BloomTokenizerFast.from_pretrained("bigscience/" + bloom_model)
+    bloom_model = BloomModel.from_pretrained("bigscience/" + bloom_model, output_hidden_states=True).to(device)
 
     print('bloom_tokenizer is type:', type(bloom_tokenizer))
     print('bloom_model is type:', type(bloom_model))
@@ -106,8 +106,7 @@ def calculate_embeddings(name, method):
     abstractsExclude, tagsExclude = parseXML(name + '/' + name + 'Exclude.xml', 0)
     df = pd.DataFrame(list(zip(tagsInclude + tagsExclude, abstractsInclude + abstractsExclude)), columns =['code', 'abstract'])
 
-    if method == "bloom-350m":
-        df['embeddings'] = get_bloom_embeddings(df['abstract'])
+    df['embeddings'] = get_bloom_embeddings(df['abstract'], method)
 
     # Save dataframe to prevent recalculation
     df.to_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
