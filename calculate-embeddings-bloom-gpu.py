@@ -31,7 +31,7 @@ def parseXML(filename, isInclude):
 def get_bloom_embeddings(abstracts):
     # Load scibert
     bloom_tokenizer = BloomTokenizerFast.from_pretrained("bigscience/bloom-350m")
-    bloom_model = BloomModel.from_pretrained("bigscience/bloom-350m").to(device)
+    bloom_model = BloomModel.from_pretrained("bigscience/bloom-350m", output_hidden_states=True).to(device)
 
     print('bloom_tokenizer is type:', type(bloom_tokenizer))
     print('bloom_model is type:', type(bloom_model))
