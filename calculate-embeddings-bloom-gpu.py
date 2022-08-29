@@ -83,9 +83,8 @@ def get_bloom_embedding(model, tokenizer, text):
         hidden_states = outputs.hidden_states
 
 
-    # Select the word embeddings on the last layer
-    print("Hidden states:", hidden_states.shape)
-    token_vecs = hidden_states[-1][0]
+    # Select the word embeddings on the last 5 layers
+    token_vecs = hidden_states[-5:][0]
     print("Token vecs:", token_vecs.shape)
     # Calculate average of token vectors/word embeddings
     document_embedding = torch.mean(token_vecs, dim=0)
