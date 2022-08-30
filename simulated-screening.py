@@ -136,10 +136,10 @@ if __name__ == "__main__":
 
     for name in names:
         stats = []
-        # df = pd.concat([pd.read_pickle("./uti/utiTrain.pkl"), pd.read_pickle("./utiTest.pkl")])
         # use just training (screening) data
         df = pd.read_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
-        total = len(df)
+        # Take just last layer of model
+        df["embeddings"] = df["embeddings"].map(lambda layers: layers[-1])
         # Simulate screening 10 times
         for i in range(10):
             clear_output(wait=True)
