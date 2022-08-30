@@ -15,6 +15,7 @@ To install all package requirements run:
 The options for method names are:
 | Method Name  | Description                                                             |
 | ------------ | ----------------------------------------------------------------------- |
+| `control`    | Random order of model / control (used for `simulated-screening.py`)     |
 | `simple`     | TF-IDF Embeddings                                                       |
 | `scibert`    | Average last layer of scibert word embeddings for document embedding    |
 | `bloom-350m` | Average last layer of bloom-350m word embeddings for document embedding |

@@ -83,7 +83,7 @@ def calcProb(model, initial, remaining):
     return remaining
 
 # Simulate screening process and return effort and accuracy metrics
-def simulateScreening(df):
+def simulateScreening(df, randomOrder = False):
     # Intialize metrics
     effort_list = []
     accuracy_list = []
@@ -118,34 +118,48 @@ def simulateScreening(df):
             break
 
         # Caclulate and sort unlabelled data (to get documents rankings)
-        unlabelled = calcProb(model, labelled, unlabelled)
+        if not randomOrder:
+            unlabelled = calcProb(model, labelled, unlabelled)
 
         # Take highest ranking remaining article and add it to labelled data
         # Drop it from unlabbeled data
         # (This simuates querying/screening the highest ranked document)
         labelled = pd.concat([labelled, unlabelled.iloc[[0]]], ignore_index=True)
         unlabelled.drop(0, inplace=True)
+        unlabelled.reset_index(drop=True, inplace=True)
 
     # Return effort and accuracy data for screening simulation
     return effort_list, accuracy_list
 
+def read_embeddings(name, method):
+    # If running the control test just load the tf-idf embeddings (smallest file)
+    if method == "control":
+        df = pd.read_pickle("./" + name + "/" + name + "-embeddings-simple.pkl")
+    else:
+     df = pd.read_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
+    if "bloom" in method:
+        # Take just last layer of model (for bloom output which has last 5 layers)
+        df["embeddings"] = df["embeddings"].map(lambda layers: layers[-1])
+    return df
+
 # Main function
 if __name__ == "__main__":
     method = sys.argv[1]
+    randomOrder = False
+    if method == "control":
+        randomOrder = True
+
     names = ["cellulitis", "copper", "search", "uti", "overdiagnosis"]
 
     for name in names:
         stats = []
-        # use just training (screening) data
-        df = pd.read_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
-        # Take just last layer of model
-        df["embeddings"] = df["embeddings"].map(lambda layers: layers[-1])
+        df = read_embeddings(name, method)
         # Simulate screening 10 times
         for i in range(10):
             clear_output(wait=True)
             print(name)
             print(i+1)
-            stats.append(simulateScreening(df))
+            stats.append(simulateScreening(df, randomOrder))
 
         stats_df = pd.DataFrame(stats, columns=["effort", "accuracy"])
         stats_df.to_csv("./stats-" + name + "-" + method + ".csv")
