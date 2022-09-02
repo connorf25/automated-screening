@@ -33,7 +33,16 @@ Pkl files will be saved inside the dataset folders representing a pandas datafra
 
 This step involves simulating the title/abstract screening process:
 
-`python simulated-screening.py <METHOD_NAME>`
+`python simulated-screening.py <METHOD_NAME> <LAYERS(if applicable)>`
+
+If one of the more complex word embedding methods are used (bert or bloom) then which layers to use can be specified the choices are below.
+The options for layers are:
+
+| Layer Name | Description                                                     |
+| ---------- | --------------------------------------------------------------- |
+| `last`     | Use the average of the last hidden layer as the embedding       |
+| `average`  | Use the average of the last five hidden layers as the embedding |
+| `concat`   | Use the concatenation of the last hidden layer as the embedding |
 
 CSV files will be saved in the root directory representing the stats of that model on a dataset.
 

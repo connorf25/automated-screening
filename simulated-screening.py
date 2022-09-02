@@ -7,6 +7,8 @@ from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
+import numpy as np
+
 from IPython.display import clear_output
 
 # Calculate the total number of articles screened so far (train / train + test)
@@ -117,7 +119,7 @@ def simulateScreening(df, randomOrder = False):
             # Have found all articles
             break
 
-        # Caclulate and sort unlabelled data (to get documents rankings)
+        # Calculate and sort unlabelled data (to get documents rankings)
         if not randomOrder:
             unlabelled = calcProb(model, labelled, unlabelled)
 
@@ -131,20 +133,33 @@ def simulateScreening(df, randomOrder = False):
     # Return effort and accuracy data for screening simulation
     return effort_list, accuracy_list
 
-def read_embeddings(name, method):
+def read_embeddings(name, method, layers_to_use):
     # If running the control test just load the tf-idf embeddings (smallest file)
     if method == "control":
         df = pd.read_pickle("./" + name + "/" + name + "-embeddings-simple.pkl")
     else:
-     df = pd.read_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
-    if "bloom" in method:
-        # Take just last layer of model (for bloom output which has last 5 layers)
-        df["embeddings"] = df["embeddings"].map(lambda layers: layers[-1])
+        df = pd.read_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
+    if "bloom" in method or "scibert" in method:
+        if layers_to_use == "average":
+            # Average all the last 5 hidden layers
+            df["embeddings"] = df["embeddings"].map(lambda layers: average_layers(layers))
+        elif layers_to_use == "concat":
+            # TODO: take concatenation of all word embeddings
+            print("TODO")
+        else:
+            # Take just last layer of model
+            df["embeddings"] = df["embeddings"].map(lambda layers: layers[-1])
     return df
+
+# Take the average of multiple hidden layers
+def average_layers(layers):
+    data = np.array(layers)
+    return np.average(data, axis=0)
 
 # Main function
 if __name__ == "__main__":
     method = sys.argv[1]
+    layers = sys.argv[2]
     randomOrder = False
     if method == "control":
         randomOrder = True
@@ -153,7 +168,7 @@ if __name__ == "__main__":
 
     for name in names:
         stats = []
-        df = read_embeddings(name, method)
+        df = read_embeddings(name, method, layers)
         # Simulate screening 10 times
         for i in range(10):
             clear_output(wait=True)
@@ -162,4 +177,7 @@ if __name__ == "__main__":
             stats.append(simulateScreening(df, randomOrder))
 
         stats_df = pd.DataFrame(stats, columns=["effort", "accuracy"])
-        stats_df.to_csv("./stats-" + name + "-" + method + ".csv")
+        if layers:
+            stats_df.to_csv("./stats-" + name + "-" + method + "-" + layers + ".csv")
+        else:
+            stats_df.to_csv("./stats-" + name + "-" + method + ".csv")
