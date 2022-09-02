@@ -22,21 +22,26 @@ def parseXML(filename, isInclude):
     abstracts = []
     tags = []
     xmldoc = minidom.parse(filename)
-    itemlist = xmldoc.getElementsByTagName('abstract')
     for node in xmldoc.getElementsByTagName('abstract'):
         abstract = node.getElementsByTagName('style')[0].firstChild.nodeValue
         abstracts.append(abstract)
         tags.append(isInclude)
     return abstracts, tags
 
-# Find bloom embeddings
-def get_bloom_embeddings(abstracts, bloom_model):
-    # Load scibert
-    bloom_tokenizer = BloomTokenizerFast.from_pretrained("bigscience/" + bloom_model)
-    bloom_model = BloomModel.from_pretrained("bigscience/" + bloom_model, output_hidden_states=True).to(device)
+# Function to return last 5 hidden layers for bloom and scibert
+def get_embeddings(abstracts, model_name):
+    # Load model and tokenizer
+    if "bloom" in model_name:
+        tokenizer = BloomTokenizerFast.from_pretrained("bigscience/" + model_name)
+        model = BloomModel.from_pretrained("bigscience/" + model_name, output_hidden_states=True).to(device)
+    elif "scibert" in model_name:
+        tokenizer = BertTokenizer.from_pretrained("allenai/scibert_scivocab_uncased")
+        model = BertModel.from_pretrained("allenai/scibert_scivocab_uncased", output_hidden_states=True).to(device)
+    else:
+        print("Invalid model name")
 
-    print('bloom_tokenizer is type:', type(bloom_tokenizer))
-    print('bloom_model is type:', type(bloom_model))
+    print('tokenizer is type:', type(tokenizer))
+    print('model is type:', type(model))
 
     embeddings = []
     length = len(abstracts.tolist())
@@ -46,10 +51,8 @@ def get_bloom_embeddings(abstracts, bloom_model):
     for sentence in abstracts.tolist():
         clear_output(wait=True)
         index += 1
-        sen_emb = get_bloom_embedding(bloom_model, bloom_tokenizer, sentence)
+        sen_emb = get_embedding(model, tokenizer, sentence)
         embeddings.append(sen_emb)
-
-        stop = timeit.default_timer()
 
         if (index/length*100) < 1:
             expected_time = "Calculating..."
@@ -62,7 +65,7 @@ def get_bloom_embeddings(abstracts, bloom_model):
         print(expected_time)
     return embeddings
 
-def get_bloom_embedding(model, tokenizer, text):
+def get_embedding(model, tokenizer, text):
 
     # Encode with special tokens ([CLS] and [SEP], returning pytorch tensors
     encoded_dict = tokenizer.encode_plus(
@@ -78,7 +81,7 @@ def get_bloom_embedding(model, tokenizer, text):
     # Set model to evaluation mode
     model.eval()
 
-    # Run through Bloom
+    # Run through model
     with torch.no_grad():
         outputs = model(input_ids)
         # Extract hidden states
@@ -106,10 +109,12 @@ def calculate_embeddings(name, method):
     abstractsExclude, tagsExclude = parseXML(name + '/' + name + 'Exclude.xml', 0)
     df = pd.DataFrame(list(zip(tagsInclude + tagsExclude, abstractsInclude + abstractsExclude)), columns =['code', 'abstract'])
 
-    df['embeddings'] = get_bloom_embeddings(df['abstract'], method)
+    df['embeddings'] = get_embeddings(df['abstract'], method)
 
     # Save dataframe to prevent recalculation
     df.to_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
+
+
 
 # Main function
 if __name__ == "__main__":
