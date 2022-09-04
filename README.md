@@ -15,37 +15,25 @@ To install all package requirements run:
 The options for method names are:
 | Method Name  | Description                                                             |
 | ------------ | ----------------------------------------------------------------------- |
-| `control`    | Random order of model / control (used for `simulated-screening.py`)     |
-| `simple`     | TF-IDF Embeddings                                                       |
+| `control`    | Random order of model / control    |
+| `bow`     | BOW Embeddings                                                       |
+| `tfidf`     | TF-IDF Embeddings                                                       |
+| `word2vec`     | Word2Vec Embeddings                                                       |
 | `scibert`    | Average last layer of scibert word embeddings for document embedding    |
+| `scibert-average`    | Average 5 last layers of scibert word embeddings for document embedding    |
+| `scibert-concat`    | Concatenated last layer of scibert word embeddings for document embedding    |
 | `bloom-350m` | Average last layer of bloom-350m word embeddings for document embedding |
-| `bloom`      | Average last layer of bloom word embeddings for document embedding      |
+| `bloom-350m-average` | Average of 5 last layers of bloom-350m word embeddings for document embedding |
+| `bloom-350m-concat` | Concatenated last layer of bloom-350m word embeddings for document embedding |
 
-## Calculate embeddings
+## Calculate stats
 
-The first step is to calculate embeddings for the testing data by running:
+To calculate the stats using a simulated screening process run:
 
-`python calculate-embeddings.py <METHOD_NAME>`
+`python main.py <METHOD_NAME>`
 
-Pkl files will be saved inside the dataset folders representing a pandas dataframe of embeddings for that model.
-
-## Simulate screening
-
-This step involves simulating the title/abstract screening process:
-
-`python simulated-screening.py <METHOD_NAME> <LAYERS(if applicable)>`
-
-If one of the more complex word embedding methods are used (bert or bloom) then which layers to use can be specified the choices are below.
-The options for layers are:
-
-| Layer Name | Description                                                     |
-| ---------- | --------------------------------------------------------------- |
-| `last`     | Use the average of the last hidden layer as the embedding       |
-| `average`  | Use the average of the last five hidden layers as the embedding |
-| `concat`   | Use the concatenation of the last hidden layer as the embedding |
-
-CSV files will be saved in the root directory representing the stats of that model on a dataset.
+If cuda is available it will be automatically used
 
 ## Stats analysis
 
-This is a jupyter notebook to view stats graphs.
+This is a jupyter notebook to view/generate stats graphs.

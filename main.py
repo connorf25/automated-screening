@@ -3,15 +3,13 @@ import sys
 
 import pandas as pd
 
-from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from xml.dom import minidom
 
 import numpy as np
 
 from IPython.display import clear_output
+
+from calculate_embeddings import get_dataframe_with_embeddings
 
 # Calculate the total number of articles screened so far (train / train + test)
 def calcPercentScreened(initial, remaining):
@@ -65,14 +63,14 @@ def createTrainTest(df, train_proportion=0.2):
 # Function to calculate probabilities of each remaining article
 def calcProb(model, initial, remaining):
     # Get initial training data and labels
-    initial_data = initial['embeddings'].tolist()
+    initial_data = initial['embedding'].tolist()
     initial_labels = initial['code'].tolist()
 
     # Fit model to initial training data
     model.fit(initial_data, initial_labels)
 
     # Get remaining data for testing
-    remaining_data = remaining['embeddings'].tolist()
+    remaining_data = remaining['embedding'].tolist()
 
     # Predict probability [exclusion, inclusion] on remaining articles
     pred = model.predict_proba(remaining_data)
@@ -135,92 +133,31 @@ def simulateScreening(df, randomOrder = False):
     # Return effort and accuracy data for screening simulation
     return effort_list, accuracy_list
 
-def read_embeddings(name, method, layers_to_use):
-    # If running the control test just load the tf-idf embeddings (smallest file)
-    if method == "control":
-        df = pd.read_pickle("./" + name + "/" + name + "-embeddings-simple.pkl")
-    else:
-        df = pd.read_pickle("./" + name + "/" + name + "-embeddings-" + method + ".pkl")
-    if "bloom" in method or "scibert" in method:
-        if layers_to_use == "average":
-            # Average all the last 5 hidden layers
-            df["embeddings"] = df["embeddings"].map(lambda layers: average_layers(layers))
-        elif layers_to_use == "concat":
-            # TODO: take concatenation of all word embeddings
-            print("TODO")
-        else:
-            # Take just last layer of model
-            df["embeddings"] = df["embeddings"].map(lambda layers: layers[-1])
-    return df
-
 # Take the average of multiple hidden layers
 def average_layers(layers):
     data = np.array(layers)
     return np.average(data, axis=0)
 
-def calculate_embeddings_bow(name):
-    df = loadXmlToDataframe(name)
-    countVectorizer = CountVectorizer(stop_words="english", max_features=768)
-    df["embeddings"] = countVectorizer.fit_transform(df["abstract"]).todense().tolist()
-    return df
-
-def calculate_embeddings_tfidf(name):
-    df = loadXmlToDataframe(name)
-    tfidfVectorizer = TfidfVectorizer(stop_words="english", max_features=768)
-    df["embeddings"] = tfidfVectorizer.fit_transform(df["abstract"]).todense().tolist()
-    return df
-
-def calculate_embeddings_word2vec(name):
-    df = loadXmlToDataframe(name)
-    # TODO: Return word2vec embeddings
-    return df
-
-def loadXmlToDataframe(name):
-    abstractsInclude, tagsInclude = parseXML(name + '/' + name + 'Include.xml', 1)
-    abstractsExclude, tagsExclude = parseXML(name + '/' + name + 'Exclude.xml', 0)
-    df = pd.DataFrame(list(zip(tagsInclude + tagsExclude, abstractsInclude + abstractsExclude)), columns =['code', 'abstract'])
-    return df
-
-#Function to parse xml
-def parseXML(filename, isInclude):
-    abstracts = []
-    tags = []
-    xmldoc = minidom.parse(filename)
-    for node in xmldoc.getElementsByTagName('abstract'):
-        abstract = node.getElementsByTagName('style')[0].firstChild.nodeValue
-        abstracts.append(abstract)
-        tags.append(isInclude)
-    return abstracts, tags
-
 # Main function
 if __name__ == "__main__":
-    method = sys.argv[1]
-    layers = sys.argv[2] if len(sys.argv) > 2 else False
+    model_name = sys.argv[1]
+
     randomOrder = False
-    if method == "control":
+    if model_name == "control":
         randomOrder = True
 
-    names = ["cellulitis", "copper", "search", "uti", "overdiagnosis"]
+    dataset_names = ["cellulitis", "copper", "search", "uti", "overdiagnosis"]
 
-    for name in names:
+    for dataset_name in dataset_names:
         stats = []
-        if method == "bow":
-            df = calculate_embeddings_bow(name)
-        elif method == "tfidf":
-            df = calculate_embeddings_tfidf(name)
-        elif method == "word2vec":
-            df = calculate_embeddings_word2vec(name)
-        else:
-            df = read_embeddings(name, method, layers)
+        df =  get_dataframe_with_embeddings(dataset_name, model_name)
         # Simulate screening 10 times
         for i in range(10):
             clear_output(wait=True)
-            print(name)
+            print(dataset_name)
             print(i+1)
             stats.append(simulateScreening(df, randomOrder))
 
         stats_df = pd.DataFrame(stats, columns=["effort", "accuracy"])
-        if layers:
-            stats_df.to_csv("./stats-" + name + "-" + method + "-" + layers + ".csv")
-        else:
-            stats_df.to_csv("./stats-" + name + "-" + method + ".csv")
+        # Save to csv
+        stats_df.to_csv("./stats-" + dataset_name + "-" + model_name + ".csv")
