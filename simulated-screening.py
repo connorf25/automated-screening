@@ -6,6 +6,8 @@ import pandas as pd
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from xml.dom import minidom
 
 import numpy as np
 
@@ -156,10 +158,44 @@ def average_layers(layers):
     data = np.array(layers)
     return np.average(data, axis=0)
 
+def calculate_embeddings_bow(name):
+    df = loadXmlToDataframe(name)
+    countVectorizer = CountVectorizer(stop_words="english", max_features=768)
+    df["embeddings"] = countVectorizer.fit_transform(df["abstract"]).todense().tolist()
+    return df
+
+def calculate_embeddings_tfidf(name):
+    df = loadXmlToDataframe(name)
+    tfidfVectorizer = TfidfVectorizer(stop_words="english", max_features=768)
+    df["embeddings"] = tfidfVectorizer.fit_transform(df["abstract"]).todense().tolist()
+    return df
+
+def calculate_embeddings_word2vec(name):
+    df = loadXmlToDataframe(name)
+    # TODO: Return word2vec embeddings
+    return df
+
+def loadXmlToDataframe(name):
+    abstractsInclude, tagsInclude = parseXML(name + '/' + name + 'Include.xml', 1)
+    abstractsExclude, tagsExclude = parseXML(name + '/' + name + 'Exclude.xml', 0)
+    df = pd.DataFrame(list(zip(tagsInclude + tagsExclude, abstractsInclude + abstractsExclude)), columns =['code', 'abstract'])
+    return df
+
+#Function to parse xml
+def parseXML(filename, isInclude):
+    abstracts = []
+    tags = []
+    xmldoc = minidom.parse(filename)
+    for node in xmldoc.getElementsByTagName('abstract'):
+        abstract = node.getElementsByTagName('style')[0].firstChild.nodeValue
+        abstracts.append(abstract)
+        tags.append(isInclude)
+    return abstracts, tags
+
 # Main function
 if __name__ == "__main__":
     method = sys.argv[1]
-    layers = sys.argv[2]
+    layers = sys.argv[2] if len(sys.argv) > 2 else False
     randomOrder = False
     if method == "control":
         randomOrder = True
@@ -168,7 +204,14 @@ if __name__ == "__main__":
 
     for name in names:
         stats = []
-        df = read_embeddings(name, method, layers)
+        if method == "bow":
+            df = calculate_embeddings_bow(name)
+        elif method == "tfidf":
+            df = calculate_embeddings_tfidf(name)
+        elif method == "word2vec":
+            df = calculate_embeddings_word2vec(name)
+        else:
+            df = read_embeddings(name, method, layers)
         # Simulate screening 10 times
         for i in range(10):
             clear_output(wait=True)
