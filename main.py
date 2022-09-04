@@ -160,4 +160,4 @@ if __name__ == "__main__":
 
         stats_df = pd.DataFrame(stats, columns=["effort", "accuracy"])
         # Save to csv
-        stats_df.to_csv("./stats-" + dataset_name + "-" + model_name + ".csv")
+        stats_df.to_csv("./stats/stats-" + dataset_name + "-" + model_name + ".csv")

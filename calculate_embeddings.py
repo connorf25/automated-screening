@@ -18,8 +18,8 @@ def get_dataframe_with_embeddings(dataset_name, model_name):
     print("Device:", device)
 
     # Parse XML and build dataset
-    abstractsInclude, tagsInclude = parseXML(dataset_name + '/' + dataset_name + 'Include.xml', 1)
-    abstractsExclude, tagsExclude = parseXML(dataset_name + '/' + dataset_name + 'Exclude.xml', 0)
+    abstractsInclude, tagsInclude = parseXML("datasets/" + dataset_name + '/' + dataset_name + 'Include.xml', 1)
+    abstractsExclude, tagsExclude = parseXML("datasets/" + dataset_name + '/' + dataset_name + 'Exclude.xml', 0)
     df = pd.DataFrame(list(zip(tagsInclude + tagsExclude, abstractsInclude + abstractsExclude)), columns =['code', 'abstract'])
 
     # Get embeddings
