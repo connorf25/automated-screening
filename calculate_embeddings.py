@@ -102,21 +102,19 @@ def calculate_embeddings_huggingface(model_name, abstracts, tokenizer, model, de
 def get_embedding_huggingface(model_name, model, tokenizer, text, device):
     # Encode with special tokens ([CLS] and [SEP], returning pytorch tensors
     padding = False
-    truncation = False
-    max_length = None
+    # 1024 set to prevent cuda memory error
+    max_length = 1024
     # Add padding for concat so all inputs are same length
     if "concat" in model_name:
         max_length = 512
         padding = "max_length"
-        truncation = True
     # Limit scibert max length to prevent error
     if "scibert" in model_name:
         max_length = 512
-        truncation = True
     # Tokenize text
     encoded_dict = tokenizer.encode_plus(
         text,
-        truncation=truncation,
+        truncation=True,
         max_length=max_length,
         padding=padding,
         add_special_tokens = True,
