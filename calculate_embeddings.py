@@ -3,6 +3,13 @@ import numpy as np
 from xml.dom import minidom
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+# Doc2Vec
+import re
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+from gensim.models.doc2vec import Doc2Vec, TaggedDocument
+
 from transformers import BertModel, BertTokenizer, BloomTokenizerFast, BloomModel
 import torch
 
@@ -10,7 +17,7 @@ import torch
 from IPython.display import clear_output
 import timeit
 
-# MAIN function used to load xml and return embeddings
+# MAIN function used to load xml and return embeddingsP
 def get_dataframe_with_embeddings(dataset_name, model_name):
     # Initialize cuda
     print("Is CUDA avaliable:", torch.cuda.is_available())
@@ -53,8 +60,8 @@ def get_embeddings(abstracts, model_name, device):
     elif "tfidf" in model_name:
         return calculate_embeddings_tfidf(abstracts)
 
-    elif "word2vec" in model_name:
-        return calculate_embeddings_word2vec(abstracts)
+    elif "doc2vec" in model_name:
+        return calculate_embeddings_doc2vec(abstracts)
 
     else:
         print("Invalid model name")
@@ -165,7 +172,34 @@ def calculate_embeddings_tfidf(abstracts):
     embeddings = tfidfVectorizer.fit_transform(abstracts).todense().tolist()
     return embeddings
 
-def calculate_embeddings_word2vec(abstracts):
-    # TODO: Return word2vec embeddings
+def calculate_embeddings_doc2vec(abstracts):
     embeddings = []
+    processed_abstracts=[]
+    for abstract in abstracts:
+        # Cleaning the text
+        processed_abstract = abstract.lower()
+        processed_abstract = re.sub('[^a-zA-Z]', ' ', processed_abstract )
+        processed_abstract = re.sub(r'\s+', ' ', processed_abstract)
+
+        # Preparing the dataset
+        tokenized_abstract = nltk.word_tokenize(processed_abstract)
+
+        # Removing Stop Words
+        tokenized_abstract = [w for w in tokenized_abstract if w not in nltk.corpus.stopwords.words('english')]
+        processed_abstracts.append(tokenized_abstract)
+
+    # Convert to TaggedDocument for efficiency
+    from gensim.test.utils import common_texts
+    documents = [TaggedDocument(doc, [i]) for i, doc in enumerate(common_texts)]
+    print(documents)
+    model = Doc2Vec(documents, vector_size=5, window=2, min_count=1, workers=4)
+    # processed_abstracts = [TaggedDocument(doc, [i]) for i, doc in enumerate(processed_abstracts)]
+    # print(processed_abstracts)
+    # Doc2Vec(processed_abstracts, vector_size=5, window=2, min_count=1, workers=4)
+    # model = Doc2Vec(processed_abstracts, window=5, min_count=5)
+    print("MODEL DONE")
+
+    for processed_abstract in processed_abstracts:
+        embeddings.append(model.infer_vector(processed_abstract))
+
     return embeddings

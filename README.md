@@ -18,7 +18,7 @@ The options for method names are:
 | `control`    | Random order of model / control    |
 | `bow`     | BOW Embeddings                                                       |
 | `tfidf`     | TF-IDF Embeddings                                                       |
-| `word2vec`     | Word2Vec Embeddings                                                       |
+| `doc2vec`     | Doc2Vec Embeddings                                                       |
 | `scibert`    | Average last layer of scibert word embeddings for document embedding    |
 | `scibert-average`    | Average 5 last layers of scibert word embeddings for document embedding    |
 | `scibert-concat`    | Concatenated last layer of scibert word embeddings for document embedding    |
