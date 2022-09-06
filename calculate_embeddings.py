@@ -189,15 +189,8 @@ def calculate_embeddings_doc2vec(abstracts):
         processed_abstracts.append(tokenized_abstract)
 
     # Convert to TaggedDocument for efficiency
-    from gensim.test.utils import common_texts
-    documents = [TaggedDocument(doc, [i]) for i, doc in enumerate(common_texts)]
-    print(documents)
-    model = Doc2Vec(documents, vector_size=5, window=2, min_count=1, workers=4)
-    # processed_abstracts = [TaggedDocument(doc, [i]) for i, doc in enumerate(processed_abstracts)]
-    # print(processed_abstracts)
-    # Doc2Vec(processed_abstracts, vector_size=5, window=2, min_count=1, workers=4)
-    # model = Doc2Vec(processed_abstracts, window=5, min_count=5)
-    print("MODEL DONE")
+    processed_abstracts = [TaggedDocument(doc, [i]) for i, doc in enumerate(processed_abstracts)]
+    model = Doc2Vec(processed_abstracts, vector_size=100, window=5, min_count=5)
 
     for processed_abstract in processed_abstracts:
         embeddings.append(model.infer_vector(processed_abstract))
