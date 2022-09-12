@@ -189,8 +189,8 @@ def calculate_embeddings_doc2vec(abstracts):
         processed_abstracts.append(tokenized_abstract)
 
     # Convert to TaggedDocument for efficiency
-    processed_abstracts = [TaggedDocument(doc, [i]) for i, doc in enumerate(processed_abstracts)]
-    model = Doc2Vec(processed_abstracts, vector_size=100, window=5, min_count=5)
+    tagged_documents = [TaggedDocument(doc, [i]) for i, doc in enumerate(processed_abstracts)]
+    model = Doc2Vec(tagged_documents, vector_size=100, window=5, min_count=5)
 
     for processed_abstract in processed_abstracts:
         embeddings.append(model.infer_vector(processed_abstract))
