@@ -3,11 +3,10 @@ import sys
 
 import pandas as pd
 
+# Classifiers
 from sklearn.linear_model import LogisticRegression
-
-import numpy as np
-
-from IPython.display import clear_output
+from sklearn.svm import SVC, LinearSVC
+from sklearn.neural_network import MLPClassifier
 
 from calculate_embeddings import get_dataframe_with_embeddings
 
@@ -85,7 +84,7 @@ def calcProb(model, initial, remaining):
     return remaining
 
 # Simulate screening process and return effort and accuracy metrics
-def simulateScreening(df, randomOrder = False):
+def simulateScreening(df, model, randomOrder = False):
     # Intialize metrics
     effort_list = []
     accuracy_list = []
@@ -95,9 +94,6 @@ def simulateScreening(df, randomOrder = False):
     # Shuffle data
     labelled = labelled.sample(frac=1).reset_index(drop=True)
     unlabelled = unlabelled.sample(frac=1).reset_index(drop=True)
-
-    # Load model
-    model = LogisticRegression(C=0.05, class_weight='balanced', max_iter=1000)
 
     # Find total number of includes
     total_includes = countIncludes(df)
@@ -133,31 +129,48 @@ def simulateScreening(df, randomOrder = False):
     # Return effort and accuracy data for screening simulation
     return effort_list, accuracy_list
 
-# Take the average of multiple hidden layers
-def average_layers(layers):
-    data = np.array(layers)
-    return np.average(data, axis=0)
+def load_classifier(model_name):
+    if "svc" in model_name:
+        model = SVC(kernel='rbf', class_weight='balanced', probability=True)
+    elif "svclinear" in model_name:
+        model = SVC(kernel='linear', class_weight='balanced', probability=True)
+    elif "mlp" in model_name:
+        model = MLPClassifier()
+    elif "lr" in model_name:
+        model = LogisticRegression(C=0.05, class_weight='balanced', max_iter=1000)
+    else:
+        print("Falling back to default logistic regression model")
+        model = LogisticRegression(C=0.05, class_weight='balanced', max_iter=1000)
+    return model
 
 # Main function
 if __name__ == "__main__":
-    model_name = sys.argv[1]
+    # Datasets to use
+    dataset_names = ["cellulitis", "copper", "search", "uti", "overdiagnosis", "bacteriuria", "telehealth"]
 
-    randomOrder = False
-    if model_name == "control":
-        randomOrder = True
+    # Models to use
+    # Simple
+    model_names = ["bow-lr", "bow-svc", "bow-mlp", "tfidf-lr", "tfidf-svc", "tfidf-mlp", "doc2vec-lr", "doc2vec-svc", "doc2vec-mlp"]
+    # Scibert
+    # model_names = ["scibert", "scibert-average", "scibert-concat"]
+    # Blooom
+    # model_names = ["bloom-350m", "bloom-1b7"]
 
-    dataset_names = ["cellulitis", "copper", "search", "uti", "overdiagnosis"]
+    for model_name in model_names:
+        randomOrder = False
+        if model_name == "control":
+            randomOrder = True
+        model = load_classifier(model_name)
 
-    for dataset_name in dataset_names:
-        stats = []
-        df =  get_dataframe_with_embeddings(dataset_name, model_name)
-        # Simulate screening 10 times
-        for i in range(10):
-            clear_output(wait=True)
-            print(dataset_name)
-            print(i+1)
-            stats.append(simulateScreening(df, randomOrder))
+        for dataset_name in dataset_names:
+            stats = []
+            df =  get_dataframe_with_embeddings(dataset_name, model_name)
+            # Simulate screening 10 times
+            for i in range(10):
+                print(model_name, dataset_name)
+                print(i+1)
+                stats.append(simulateScreening(df, model, randomOrder))
 
-        stats_df = pd.DataFrame(stats, columns=["effort", "accuracy"])
-        # Save to csv
-        stats_df.to_csv("./stats/stats-" + dataset_name + "-" + model_name + ".csv")
+            stats_df = pd.DataFrame(stats, columns=["effort", "accuracy"])
+            # Save to csv
+            stats_df.to_csv("./stats/stats-" + dataset_name + "-" + model_name + ".csv")
