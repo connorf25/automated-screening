@@ -146,13 +146,13 @@ def load_classifier(model_name):
 # Main function
 if __name__ == "__main__":
     # Datasets to use # UP TO BOW-mlp overdiagnosis
-    dataset_names = ["overdiagnosis", "bacteriuria", "telehealth"]
+    dataset_names = ["bacteriuria", "telehealth"]
 
     # Models to use
     # Simple
-    model_names = ["bow-mlp"]
+    # model_names = ["bow-lr", "bow-svc", "bow-mlp", "tfidf-lr", "tfidf-svc", "tfidf-mlp", "doc2vec-lr", "doc2vec-svc", "doc2vec-mlp"]
     # Scibert
-    # model_names = ["scibert", "scibert-average", "scibert-concat"]
+    model_names = ["scibert", "scibert-average", "scibert-concat"]
     # Blooom
     # model_names = ["bloom-350m", "bloom-1b7"]
 
