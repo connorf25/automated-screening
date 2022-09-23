@@ -1,6 +1,13 @@
 # Imports
 import sys
 
+# Temp workaround
+# import os
+# os.environ["CURL_CA_BUNDLE"]=""
+# import os
+# import requests
+# os.environ['NO_PROXY'] = 'huggingface.co'
+
 import pandas as pd
 
 # Classifiers
