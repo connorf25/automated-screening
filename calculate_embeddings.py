@@ -14,7 +14,6 @@ from transformers import BertModel, BertTokenizer, BloomTokenizerFast, BloomMode
 import torch
 
 #Timing
-from IPython.display import clear_output
 import timeit
 
 # MAIN function used to load xml and return embeddingsP
@@ -89,7 +88,6 @@ def calculate_embeddings_huggingface(model_name, abstracts, tokenizer, model, de
 
     start = timeit.default_timer()
     for sentence in abstracts.tolist():
-        clear_output(wait=True)
         index += 1
         doc_emb = get_embedding_huggingface(model_name, model, tokenizer, sentence, device)
         print("Document embedding shape:", doc_emb.shape)

@@ -154,7 +154,7 @@ if __name__ == "__main__":
     # Scibert
     # model_names = ["scibert", "scibert-average", "scibert-concat"]
     # Blooom
-    model_names = ["bloom-560m", "bloom-560m-average", "bloom-1b7", "bloom-1b7-average"]
+    model_names = ["bloom-1b7", "bloom-1b7-average"]
 
     for model_name in model_names:
         randomOrder = False
