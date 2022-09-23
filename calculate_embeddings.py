@@ -38,9 +38,9 @@ def get_dataframe_with_embeddings(dataset_name, model_name):
 # Function to decide what embeddings to return
 def get_embeddings(abstracts, model_name, device):
     if "bloom" in model_name:
-        if "350m" in model_name:
-            tokenizer = BloomTokenizerFast.from_pretrained("bigscience/bloom-350m")
-            model = BloomModel.from_pretrained("bigscience/bloom-350m", output_hidden_states=True).to(device)
+        if "560m" in model_name:
+            tokenizer = BloomTokenizerFast.from_pretrained("bigscience/bloom-560m")
+            model = BloomModel.from_pretrained("bigscience/bloom-560m", output_hidden_states=True).to(device)
         elif "1b7" in model_name:
             tokenizer = BloomTokenizerFast.from_pretrained("bigscience/bloom-1b7")
             model = BloomModel.from_pretrained("bigscience/bloom-1b7", output_hidden_states=True).to(device)
